@@ -7,11 +7,12 @@ Este repositorio contiene la solución a un desafío técnico que implica el pro
 ├── src
 │   ├── spotify_data_processing.py
 │   └── data_quality_analysis.py
-├── dep
-│   ├── dataset.csv
-│   └── taylor_swift_spotify.json 
-├── doc
-│   └── data_quality_report.pdf
+├── input
+│   └── taylor_swift_spotify.json
+├── output
+│   ├── doc
+│   │   └── data_quality_report.pdf
+│   └── dataset.csv
 ├── res
 ├── README.md
 └── .gitignore
@@ -21,12 +22,13 @@ Este repositorio contiene la solución a un desafío técnico que implica el pro
 - spotify_data_processing.py: Script en Python que procesa el archivo JSON descargado de la API de Spotify y lo convierte al formato solicitado (dataset.csv).
 - data_quality_analysis.py: Script en Python que realiza el análisis de calidad de datos sobre el conjunto de datos resultante.
 
-**dep/: Contiene los archivos de dependencias.**
-- dataset.csv: El conjunto de datos procesado generado por *spotify_data_processing.py*.
+**input/: Contiene los archivos que seran analizados.**
 - taylor_swift_spotify.json: El archivo JSON descargado de la API de Spotify.
 
-**doc/: Contiene documentos y reportes.**
-- data_quality_report.pdf: Documento que presenta los resultados del análisis de calidad de datos, identificando las anomalías encontradas y proporcionando justificaciones.
+**output/: Contiene los archivos resultantes de los scripts.**
+- **doc/: Contiene documentos y reportes.**
+  - data_quality_report.pdf: Documento que presenta los resultados del análisis de calidad de datos, identificando las anomalías encontradas y proporcionando justificaciones.
+- dataset.csv: El conjunto de datos procesado generado por *spotify_data_processing.py*.
 
 **res/: Reservado para recursos adicionales como archivos multimedia o cualquier otro material necesario para explicar el proceso y los resultados.**
 
