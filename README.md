@@ -38,12 +38,12 @@ Este repositorio contiene la solución a un desafío técnico que implica el pro
 
 ## Instrucciones de Uso
 ### Parte 1: Procesamiento del Archivo JSON
-- Ejecute src/spotify_data_processing.py proporcionando el archivo JSON dep/taylor_swift_spotify.json.
-- El script generará el archivo dep/dataset.csv con el formato solicitado.
+- Ejecute src/spotify_data_processing.py proporcionando el archivo JSON input/taylor_swift_spotify.json.
+- El script generará el archivo output/dataset.csv.
 
 ### Parte 2: Análisis de Calidad de Datos
 - Luego de ejecutar *src/spotify_data_processing.py*. Ejecute src/data_quality_analysis.py.
-- Consulte el archivo doc/data_quality_report.pdf para obtener detalles sobre las anomalías identificadas.
+- Consulte el archivo output/doc/data_quality_report.pdf para obtener detalles sobre las anomalías identificadas.
 
 ## Notas Importantes
 - Asegúrese de tener instaladas las bibliotecas necesarias antes de ejecutar los scripts (Pandas y JSON).
