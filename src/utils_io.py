@@ -101,4 +101,10 @@ def contains_bad_encoding(value):
     else:
         return False
 
-
+# Function to test if a string can be converted to a float value
+def can_be_converted(value):
+    try:
+        float_value = float(value)
+        return True
+    except ValueError:
+        return False
