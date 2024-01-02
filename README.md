@@ -15,6 +15,7 @@ Este repositorio contiene la solución a un desafío técnico que implica el pro
 │   └── dataset.csv
 ├── res
 ├── README.md
+├── requirements.txt
 └── .gitignore
 ```
 
@@ -45,6 +46,13 @@ Este repositorio contiene la solución a un desafío técnico que implica el pro
 - Luego de ejecutar *src/spotify_data_processing.py*. Ejecute src/data_quality_analysis.py.
 - Consulte el archivo output/doc/data_quality_report.pdf para obtener detalles sobre las anomalías identificadas.
 
+### Link S3:
+- dataset.csv: https://dataqualitychallenge.s3.us-east-2.amazonaws.com/dataset.csv
+- data_quality_report.pdf: https://dataqualitychallenge.s3.us-east-2.amazonaws.com/data_quality_report.pdf
+
 ## Notas Importantes
-- Asegúrese de tener instaladas las bibliotecas necesarias antes de ejecutar los scripts (Pandas y JSON).
+- Idealmente, los repositorios no deben contener datos de producción, pero en este desafío se incluyen con fines de demostración.
+- Hay dos versiones de salida de los datos: una local y otra en la nube de AWS (S3). Puede encontrar el enlace de la versión en la nube en el archivo README.md.
+- Asegúrese de tener instaladas las bibliotecas necesarias antes de ejecutar los scripts (Pandas y JSON). Ver requirements.txt
 - Consulte el README.md para obtener orientación adicional sobre el repositorio y su uso.
+
