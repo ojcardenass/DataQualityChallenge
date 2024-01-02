@@ -19,14 +19,13 @@ csv_path = os.path.join(output_path, csv_name)
 data = utils_io.get_json_from_drive(json_link)
 
 # Normalize json data
-tracks = pd.json_normalize(data, record_path=['albums','tracks'], meta=['artist_id'])
-albums = pd.json_normalize(data, record_path=['albums'], meta=['artist_id'])
-artists = pd.json_normalize(data)
+tracks = pd.json_normalize(data, record_path=['albums','tracks'], meta=['artist_id','artist_name','artist_popularity',['albums','album_id']])
+tracks.to_csv('tracks.csv', index=False)
+albums = pd.json_normalize(data, record_path=['albums'])
 
 # Merge dataframes into one dataset
-dataset = tracks.merge(artists, on='artist_id')
-dataset = dataset.merge(albums, on='artist_id')
-dataset = dataset.drop(columns=['tracks', 'albums'])
+dataset = tracks.merge(albums, left_on='albums.album_id', right_on='album_id')
+dataset = dataset.drop(columns=['tracks','albums.album_id'])
 
 # Save dataset to csv file locally
 dataset.to_csv(csv_path, index=False)
