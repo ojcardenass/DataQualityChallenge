@@ -1,11 +1,15 @@
 from io import StringIO
+from pathlib import Path
 import os
+import re
+from urllib.request import urlopen
 
 import requests
 import json
 import logging
 import boto3
 from botocore.exceptions import ClientError
+import pandas as pd
 
 
 def upload_file(file_name, bucket, object_name=None):
@@ -53,6 +57,48 @@ def get_json_from_drive(link):
     # Return the json data
     return json_data
 
+def get_dataset(method):
+    try:
+        method = method.lower()
+        if method == 's3':
+            df = csv_from_s3('dataqualitychallenge', 'dataset.csv')
+        elif method == 'url':         
+            # Get the csv file from the url
+            url = "https://dataqualitychallenge.s3.us-east-2.amazonaws.com/dataset.csv"
+            with urlopen(url) as conn:
+                df = pd.read_csv(conn)
 
+        elif method == 'local':
+            # Paths to input and output folders | Local version
+            base_path = Path(os.getcwd())
+            output_path = os.path.join(base_path, 'output')
+            csv_name = 'dataset.csv'
+            csv_path = os.path.join(output_path, csv_name)
+            df = pd.read_csv(csv_path)
+        return df
+    except:
+        raise ValueError('Invalid method')
+        
+
+
+def csv_from_s3(bucket, csv_name):
+    # Download csv file from s3 bucket
+    s3 = boto3.client('s3')
+    obj = s3.get_object(Bucket=bucket, Key=csv_name)
+    df = pd.read_csv(obj['Body'])
+    return df
+
+def contains_bad_encoding(value):
+    # Apostrophe bad decoded
+    a = '’'.encode('utf-8').decode('cp1252')
+    b = '‘'.encode('utf-8').decode('cp1252')
+    
+    # Function to check if a value contains bad encoding characters
+    regex = re.compile(f'[‘’{a}{b}]')
+    # Check if the value contains bad encoding characters
+    if regex.search(value) is not None:
+        return True
+    else:
+        return False
 
 
