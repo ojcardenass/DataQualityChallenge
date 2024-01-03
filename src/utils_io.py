@@ -108,3 +108,14 @@ def can_be_converted(value):
         return True
     except ValueError:
         return False
+    
+def multiple_row_height(row_height, data):
+    # List of row heights
+    multiple_row_heights = [row_height] * len(data)
+    # Define the height for shading the second row
+    multiple_row_heights[1] = row_height / 5
+    # Define a smaller height for rows beyond the second row
+    for i in range(2, len(data)):
+        multiple_row_heights[i] = row_height / 2.8
+
+    return multiple_row_heights

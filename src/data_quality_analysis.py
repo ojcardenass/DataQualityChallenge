@@ -1,19 +1,15 @@
 import json
 import os
+from io import StringIO, BytesIO
 
 import utils_io
 import pandas as pd
 from datetime import datetime
 import pandas as pd
 
+
 # Read the CSV file using the selected method
 df = utils_io.get_dataset('url')
-
-# Perform data analysis
-# Get the number of rows and columns in the dataset
-num_rows = df.shape[0]
-num_cols = df.shape[1]
-total_data = num_cols * num_rows
 
 # 1. Completeness 
 # 2. Uniqueness 
@@ -22,19 +18,62 @@ total_data = num_cols * num_rows
 # 5. Accuracy
 # 6. Consistency
 
-# Get the summary statistics of numerical columns
-summary_stats = df.describe()
-# Check data types
-data_types = df.dtypes
+num_rows = df.shape[0]
+num_cols = df.shape[1]
+total_data = num_cols * num_rows
 
-# 1 - Completeness: A measure of the absence of blank (null or empty string) values or the presence of non­blank values.
-# Check for missing values
-missing_values = df.isnull().sum()
-# Get the percentage of total missing values in each column
-total_missing_values = missing_values.sum()
-missing_values_percentage = (missing_values / num_rows) * 100
-total_missing_values_percentage = (missing_values / total_data) * 100
+# Perform data analysis
+def dataset_properties(df):
+    # Get the number of rows and columns in the dataset
+    num_rows = df.shape[0]
+    num_cols = df.shape[1]
+    total_data = num_cols * num_rows
 
+    ds_prop = {'rows':num_rows, 'cols': num_cols, 'all': total_data}
+
+    return ds_prop
+
+
+# Dataset overview
+def overview(df):
+    ds_prop = dataset_properties(df)
+
+    # Get the summary statistics of numerical columns
+    summary_stats = df.describe()
+
+    # Check data types
+    # data_types = df.dtypes
+    numerics = df.dtypes[df.dtypes == 'int64'].count() + df.dtypes[df.dtypes == 'float64'].count()
+    strings = df.dtypes[df.dtypes == 'O'].count()
+    date_time = df.dtypes[df.dtypes == 'datetime64[ns]'].count()
+
+    # 1 - Completeness: A measure of the absence of blank (null or empty string) values or the presence of non­blank values.
+    # Check for missing values
+    missing_values = df.isnull().sum()
+
+    # Get the percentage of total missing values in each column
+    total_missing_values = missing_values.sum()
+    missing_values_percentage = (missing_values / ds_prop['rows']) * 100
+    total_missing_values_percentage = (total_missing_values / ds_prop['all']) * 100
+
+    # 3 - Uniqueness: No thing will be recorded more than once based upon how that thing is identified.
+
+    # Check for duplicates
+    duplicate_rows = df.duplicated().sum()
+    duplicate_rows_percentage = (duplicate_rows / ds_prop['rows']) * 100
+
+    data = {
+        'numerics': numerics,
+        'strings': strings,
+        'date_time': date_time,
+        'total_missing_values': total_missing_values,
+        'total_missing_values_percentage': total_missing_values_percentage,
+        'duplicate_rows': duplicate_rows,
+        'duplicate_rows_percentage': duplicate_rows_percentage,
+    }
+    data = data | ds_prop
+
+    return data
 
 # 2 - Validity: Data are valid if it conforms to the syntax (format, type, range) of its definition.
 
@@ -60,16 +99,13 @@ total_tracks_anomalies_percentage = (total_tracks_anomalies / num_rows) * 100
 instrumentalness_type = df['audio_features.instrumentalness']
 instrumentalness_type_is_numeric = (instrumentalness_type.dtypes.name).isnumeric()
 
+# Data type of album release date must be datetime, and it's an object
+album_release_date_type = df['album_release_date']
+album_release_date_type_is_datetime = album_release_date_type.dtypes == 'datetime64[ns]'
+
 # Data in instrumentalness audio feature after being converted to numeric has inconsistent values
 instrumentalness_type_conver_anomalies = (~instrumentalness_type.apply(func=utils_io.can_be_converted)).sum()
 instrumentalness_type_conver_anomalies_percentage = (instrumentalness_type_conver_anomalies / num_rows) * 100
-
-
-# 3 - Uniqueness: No thing will be recorded more than once based upon how that thing is identified.
-
-# Check for duplicates
-duplicate_rows = df.duplicated().sum()
-duplicate_rows_percentage = (duplicate_rows / num_rows) * 100
 
 
 # 4 - Accuracy: What data is inaccurate?
@@ -131,15 +167,15 @@ track_id_blanks_percentage = (track_id_blanks / num_rows) * 100
 # Albums with the same album id
 duplicated_albums = df.drop_duplicates(subset=['album_id'], keep=False)
 
+
 data = {
     'Metric': ['Incorrect Track Names', 'Special Character Track Names', 'Explicit Anomalies', 'Total Tracks Anomalies',
-               'Instrumentalness Type (Numeric)', 'Instrumentalness Type Conversion Anomalies', 'Duplicate Rows',
+               'Instrumentalness Type (Numeric)', 'Instrumentalness Type Conversion Anomalies',
                'Danceability Anomalies', 'Energy Anomalies', 'Key Anomalies', 'Loudness Anomalies',
                'Acousticness Anomalies', 'Liveness Anomalies', 'Time Signature Anomalies', 'Popularity Anomalies',
                'Artist Popularity Anomalies', 'Duration Anomalies', 'Year Anomalies', 'Track ID Blanks'],
     'Percentage': [incorrect_track_names_percentage, special_character_track_names_percentage, explicit_anomalies_percentage,
-                   total_tracks_anomalies_percentage, instrumentalness_type_is_numeric, instrumentalness_type_conver_anomalies_percentage,
-                   duplicate_rows_percentage, danceability_anomalies_percentage, energy_anomalies_percentage,
+                   total_tracks_anomalies_percentage, instrumentalness_type_is_numeric, instrumentalness_type_conver_anomalies_percentage, danceability_anomalies_percentage, energy_anomalies_percentage,
                    key_anomalies_percentage, loudness_anomalies_percentage, acousticness_anomalies_percentage,
                    liveness_anomalies_percentage, time_signature_anomalies_percentage, popularity_anomalies_percentage,
                    artist_popularity_anomalies_percentage, duration_ms_anomalies_percentage,
