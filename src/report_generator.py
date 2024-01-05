@@ -17,8 +17,6 @@ from reportlab.lib.pagesizes import LETTER, inch
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfgen import canvas
-import matplotlib.pyplot as plt
-import seaborn as sns
 from tqdm import tqdm
 from colorama import just_fix_windows_console, Fore, Style
 
@@ -68,12 +66,12 @@ class FooterCanvas(canvas.Canvas):
         self.setLineWidth(0.5)
         self.line(66, 55, LETTER[0] - 66, 55)
 
-        self.setFontSize(11)
+        self.setFontSize(9)
         text = 'Dataset Quality Report'
         self.setFillColor(black)
         self.drawString(60, 745, text)
 
-        self.setFontSize(10)
+        self.setFontSize(9)
         date = datetime.now().strftime('%A, %d %B %Y').replace(' 0', ' ')
         info = f" Generated on: {date}"
         self.setFillColor(black)
@@ -98,9 +96,16 @@ class DataProfilingPDF():
 
         # Document properties and list of elements
         self.styleSheet = getSampleStyleSheet()
+        self.justify_text = ParagraphStyle('BodyText', parent=self.styleSheet['BodyText'], alignment=TA_JUSTIFY)
         self.elements = []
         self.width, self.height = LETTER
 
+         # Standard plot size
+        self.plot_width = 1.7 * inch
+        self.plot_height = 1.7 * inch
+
+        self.anomalies = anomalies_data(self.dataset)
+             
         def build_report():
             # Template on which the report will be generated
             self.doc = SimpleDocTemplate(self.path, pagesize=LETTER, leftMargin=0.7 * inch, title=title)
@@ -111,6 +116,8 @@ class DataProfilingPDF():
         processes = {
             "First Page": self.firstPage,
             "Table of contents": self.secondPage,
+            "Sources Report": self.sources,
+            "Regards": self.regards,
             "Data Overview ": self.overview,
             "Scores": self.scores,
             "Unique Value Analysis": self.graph_overview,
@@ -128,6 +135,7 @@ class DataProfilingPDF():
         print(f"{Fore.RED}\nErrors:{Style.RESET_ALL}")
         print(f"{Fore.RED}{error_buffer.read()}{Style.RESET_ALL}")
         error_buffer.close()
+
 
     # Portada
     def firstPage(self):
@@ -176,8 +184,6 @@ class DataProfilingPDF():
         paragraphReportHeader = Paragraph(text, psHeaderText)
         self.elements.append(paragraphReportHeader)
 
-        spacer = Spacer(10, 2)
-        self.elements.append(spacer)
 
         psHeaderText = ParagraphStyle('Hed0', fontSize=15, leftIndent=50, leading=20, alignment=TA_LEFT, borderWidth=3, textColor=black)
         text = '3. Estadísticas (Métricas)'
@@ -194,21 +200,68 @@ class DataProfilingPDF():
 
         self.elements.append(PageBreak())
 
+    def sources(self):
+
+        psHeaderText = ParagraphStyle('Hed0', fontSize=19, alignment=TA_CENTER, borderWidth=3, textColor=black)
+        text = '1. Fuente de datos'
+        paragraphReportHeader = Paragraph(text, psHeaderText)
+        self.elements.append(paragraphReportHeader)
+
+        spacer = Spacer(30, 50)
+        self.elements.append(spacer)
+
+        data = sources_report()
+        source = data['source']
+        description = data['description']
+        definition = data['definition']
+
+        paragraphReport = Paragraph(source, self.styleSheet['Definition'])
+        self.elements.append(paragraphReport)
+
+        spacer = Spacer(30, 4)
+        self.elements.append(spacer)
+
+        paragraphReport = Paragraph(description, self.justify_text)
+        self.elements.append(paragraphReport)
+
+        spacer = Spacer(30, 4)
+        self.elements.append(spacer)
+
+        paragraphReport = Paragraph(definition, self.justify_text)
+        self.elements.append(paragraphReport)
+
+        self.elements.append(PageBreak())
+
+    def regards(self):
+
+        psHeaderText = ParagraphStyle('Hed0', fontSize=19, alignment=TA_CENTER, borderWidth=3, textColor=black)
+        text = '2. Consideraciones de Anomalías'
+        paragraphReportHeader = Paragraph(text, psHeaderText)
+        self.elements.append(paragraphReportHeader)
+
+        spacer = Spacer(30, 50)
+        self.elements.append(spacer)
+
+        anomalies_list = regards_data()
+
+        style = self.styleSheet["Definition"]
+
+        # Create a list of Paragraphs with enumeration
+        paragraphs = [Paragraph(f"2.{i + 1:02d} {anomaly}", style) for i, anomaly in enumerate(anomalies_list)]
+        self.elements.extend(paragraphs)
+
+        self.elements.append(PageBreak())
 
 
     # Section
     def overview(self):
         data_o = overview(self.dataset)
         # Styles for the section title
-        psHeaderText = ParagraphStyle('Hed0', fontSize=15, alignment=TA_LEFT, borderWidth=3, textColor=black)
-        text = 'Overview'
-        # Flowable element for the title
+        psHeaderText = ParagraphStyle('Hed0', fontSize=19, alignment=TA_CENTER, borderWidth=3, textColor=black)
+        text = '3. Estadistícas (Métricas)'
         paragraphReportHeader = Paragraph(text, psHeaderText)
-        self.elements.append(paragraphReportHeader)
 
-        # Space between the title and the image
-        spacer = Spacer(10, 10)
-        self.elements.append(spacer)
+        spacer = Spacer(10, 15)
 
         # Generate the table with the stat data
         stat_data = [
@@ -264,14 +317,47 @@ class DataProfilingPDF():
         table.setStyle(TableStyle([
             ('VALIGN',(0,0),(-1,-1),'TOP'),
         ]))
-        self.elements.append(table)
 
-        # # Group all the elements of this section
-        # block = KeepTogether([paragraphReportHeader, spacer, table])
-        # self.elements.append(block)
+        data_o = overview(self.dataset)
+        stats = analysis_stats(self.dataset)
 
-        spacer = Spacer(10, 20)
+        anomalies = stats['analyzed']
+        notAnaliz = stats['notAnalyzed']
+        good_data = stats['good']
+
+        data = [good_data, notAnaliz, anomalies]
+        labels = ["Datos buenos", "Datos no analizados", "Datos anomalías"]
+
+        imgdata = utils_io.pie_plot(data=data, title="Resumen de análisis", labels=labels)
+
+        # Read the image of the graph and set the size it will be saved in
+        img_data = Image(imgdata, width=2.5 * inch, height=2.5 * inch)
+
+        data1 = [value for key, value in self.anomalies.items() if value > 0 and key != 'Total']
+        labels1 = [key for key, value in self.anomalies.items() if value > 0 and key != 'Total']
+
+        imgdata1 = utils_io.pie_plot(data=data1, title="Tipos de anomalías", labels=labels1)
+
+        # Read the image of the graph and set the size it will be saved in
+        img_data1 = Image(imgdata1, width=2.5 * inch, height=2.5 * inch)
+
+         # New table that contains the last 2 images
+        data = [(img_data, img_data1)]
+        table1 = Table(data, 220)
+        table1.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), transparent),
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+
+
+        # Group all the elements of this section
+        block = KeepTogether([paragraphReportHeader, spacer, table, spacer, table1])
+        self.elements.append(block)
+
+        spacer = Spacer(10, 10)
         self.elements.append(spacer)
+
 
     def graph_overview(self):
         data_o = overview(self.dataset)
@@ -344,29 +430,6 @@ class DataProfilingPDF():
 
     def scores(self):
 
-        def donut_plot(data, title):
-            # Create a pieplot        
-            plt.subplots()
-            plt.pie(data, colors=sns.color_palette('Accent'))
-            # add a circle at the center to transform it into a donut chart
-            my_circle = plt.Circle((0, 0), 0.7, color='white')
-            p = plt.gcf()
-            p.gca().add_artist(my_circle)
-
-            # Set the title of the graph
-            plt.title(title, fontsize=16)
-
-            # Add annotation in the center of the figure
-            completeness_percentage = (1 - (data[1] / data[0])) * 100
-            plt.text(0, 0, f'{completeness_percentage:.1f}%', horizontalalignment='center', verticalalignment='center', fontsize=20)
-
-            # Save the image as a stream of in-memory bytes
-            imgdata = BytesIO()
-            plt.savefig(imgdata, format='png', bbox_inches='tight')
-            imgdata.seek(0)  # rewind the data
-
-            return imgdata
-
         # Styles for the section title
         psHeaderText = ParagraphStyle('Hed0', fontSize=15, alignment=TA_LEFT, borderWidth=3, textColor=black)
         text = 'Overall Scores'
@@ -385,53 +448,45 @@ class DataProfilingPDF():
         rows = data_o['rows']
 
         # Generate the table with the stat data
-        # standard size
-        width = 1.7 * inch
-        height = 1.7 * inch
-
         # Completeness graph
+        # TODO: For every test made != 0 generate an image with the data and the name
         completeness_data=[all_data, incomplete_data]
-        imgdata_compl = donut_plot(completeness_data, 'Completeness')
+        imgdata_compl = utils_io.donut_plot(completeness_data, 'Completeness')
 
         # Read the image of the graph and set the size it will be saved in
-        img_completeness = Image(imgdata_compl, width=width, height=height)
+        img_completeness = Image(imgdata_compl, width=self.plot_width, height=self.plot_height)
 
 
         # Uniqueness graph
         unique_data = [all_data, duplicated_data]
-        imgdata_uniq = donut_plot(unique_data, 'Uniqueness')
+        imgdata_uniq = utils_io.donut_plot(unique_data, 'Uniqueness')
 
         # Read the image of the graph and set the size it will be saved in
-        img_unique = Image(imgdata_uniq, width=width, height=height)
+        img_unique = Image(imgdata_uniq, width=self.plot_width, height=self.plot_height)
 
 
         # Validity graph
         valid_data = [all_data, invalid_data]
-        imgdata_valid = donut_plot(valid_data, 'Validity')
+        imgdata_valid = utils_io.donut_plot(valid_data, 'Validity')
 
         # Read the image of the graph and set the size it will be saved in
-        img_valid = Image(imgdata_valid, width=width, height=height)
+        img_valid = Image(imgdata_valid, width=self.plot_width, height=self.plot_height)
 
 
         # Accurate graph
         accur_data = [all_data, inaccurate_data]
-        imgdata_accur = donut_plot(accur_data, 'Accuracy')
+        imgdata_accur = utils_io.donut_plot(accur_data, 'Accuracy')
 
         # Read the image of the graph and set the size it will be saved in
-        img_accurate = Image(imgdata_accur, width=width, height=height)
+        img_accurate = Image(imgdata_accur, width=self.plot_width, height=self.plot_height)
 
         # Overall data quality score
         overall_score = (1 - (incomplete_data + duplicated_data + invalid_data + inaccurate_data) / all_data) * 100
 
         psText = ParagraphStyle(name='a', fontSize=12, alignment=TA_LEFT, borderWidth=3, textColor=black)
-        text2 = f"Data Quality Score: {overall_score:.2f}"
+        text2 = f"Data Quality Score: {overall_score:.1f}"
         # Flowable element for the title
         paragraph1 = Paragraph(text2, psText)
-        # data = [[f"Data Quality Score: {overall_score:.2f}", "", "", ""]]
-
-        # imgs = [(img_completeness, img_unique, img_valid, img_accurate)]
-
-        # data.extend(imgs)
 
         # New table that contains the last 4 images
         data = [(img_completeness, img_unique, img_valid, img_accurate)]
@@ -460,7 +515,7 @@ class DataProfilingPDF():
         spacer1 = Spacer(10, 6)
 
         # Generate the nullity matrix
-        fig = missingno.matrix(self.dataset)
+        fig = missingno.matrix(self.dataset, color=(.19,.95,.43))
         fig_copy = fig.get_figure()
 
         # Save the image as a stream of in-memory bytes
@@ -485,6 +540,7 @@ if __name__ == '__main__':
         report = DataProfilingPDF()
         end = time.time()
         exc_time = end - start
+        print(f"Report generated in {exc_time:.2f} seconds")
 
     except ValueError as ve:
         print(f"Error: {ve}")

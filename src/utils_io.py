@@ -1,4 +1,4 @@
-from io import StringIO
+from io import StringIO, BytesIO
 from pathlib import Path
 import os
 import re
@@ -9,6 +9,8 @@ import json
 import logging
 import boto3
 from botocore.exceptions import ClientError
+import matplotlib.pyplot as plt
+import seaborn as sns
 import pandas as pd
 
 
@@ -119,3 +121,42 @@ def multiple_row_height(row_height, data):
         multiple_row_heights[i] = row_height / 2.8
 
     return multiple_row_heights
+
+# Auxiliar functions for graph ploting
+def donut_plot(data, title):
+    # Create a pieplot        
+    plt.subplots()
+    plt.pie(data, colors=sns.color_palette('Accent'))
+    # add a circle at the center to transform it into a donut chart
+    my_circle = plt.Circle((0, 0), 0.7, color='white')
+    p = plt.gcf()
+    p.gca().add_artist(my_circle)
+
+    # Set the title of the graph
+    plt.title(title, fontsize=18)
+
+    # Add annotation in the center of the figure
+    percentage = (1 - (data[1] / data[0])) * 100
+    plt.text(0, 0, f'{percentage:.1f}%', horizontalalignment='center', verticalalignment='center', fontsize=20)
+
+    # Save the image as a stream of in-memory bytes
+    imgdata = BytesIO()
+    plt.savefig(imgdata, format='png', bbox_inches='tight')
+    imgdata.seek(0)  # rewind the data
+
+    return imgdata
+
+def pie_plot(data, title, labels):
+    # Create a pieplot        
+    plt.subplots()
+    plt.pie(data, colors=sns.color_palette('Accent'), labels=labels, autopct='%1.0f%%')
+
+    # Set the title of the graph
+    plt.title(title, fontsize=16)
+
+    # Save the image as a stream of in-memory bytes
+    imgdata = BytesIO()
+    plt.savefig(imgdata, format='png', bbox_inches='tight')
+    imgdata.seek(0)  # rewind the data
+
+    return imgdata
