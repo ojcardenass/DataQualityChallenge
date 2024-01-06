@@ -86,7 +86,6 @@ def overview(df):
     strings = df.dtypes[df.dtypes == 'O'].count()
     date_time = df.dtypes[df.dtypes == 'datetime64[ns]'].count()
 
-    # 1 - Completeness: A measure of the absence of blank (null or empty string) values or the presence of non­blank values.
     # Check for missing values
     missing_values = df.isnull().sum()
 
@@ -94,8 +93,6 @@ def overview(df):
     total_missing_values = missing_values.sum()
     missing_values_percentage = (missing_values / ds_prop['rows']) * 100
     total_missing_values_percentage = (total_missing_values / ds_prop['all']) * 100
-
-    # 3 - Uniqueness: No thing will be recorded more than once based upon how that thing is identified.
 
     # Check for duplicates
     duplicate_rows = df.duplicated().sum()
@@ -252,10 +249,12 @@ def accuracy(df):
 
 # 6 - Consistency: What data gives conflicting answers?
 def consistency(df):
+    # No comprobation of this kind
     return 0
 
 # 3. Timeliness: Number of records with delayed changes
 def timeliness(df):
+    # No comprobation of this kind
     return 0
 
 def anomalies_data(df):

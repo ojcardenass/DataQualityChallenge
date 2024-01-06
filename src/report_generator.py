@@ -438,58 +438,36 @@ class DataProfilingPDF():
 
         spacer = Spacer(10, 10)
 
-        incomplete_data = completeness(self.dataset)
-        duplicated_data = uniqueness(self.dataset)
-        invalid_data = validity(self.dataset)
-        inaccurate_data = accuracy(self.dataset)
-
         data_o = overview(self.dataset)
         all_data = data_o['all']
         rows = data_o['rows']
 
-        # Generate the table with the stat data
-        # Completeness graph
-        # TODO: For every test made != 0 generate an image with the data and the name
-        completeness_data=[all_data, incomplete_data]
-        imgdata_compl = utils_io.donut_plot(completeness_data, 'Completeness')
-
-        # Read the image of the graph and set the size it will be saved in
-        img_completeness = Image(imgdata_compl, width=self.plot_width, height=self.plot_height)
-
-
-        # Uniqueness graph
-        unique_data = [all_data, duplicated_data]
-        imgdata_uniq = utils_io.donut_plot(unique_data, 'Uniqueness')
-
-        # Read the image of the graph and set the size it will be saved in
-        img_unique = Image(imgdata_uniq, width=self.plot_width, height=self.plot_height)
-
-
-        # Validity graph
-        valid_data = [all_data, invalid_data]
-        imgdata_valid = utils_io.donut_plot(valid_data, 'Validity')
-
-        # Read the image of the graph and set the size it will be saved in
-        img_valid = Image(imgdata_valid, width=self.plot_width, height=self.plot_height)
-
-
-        # Accurate graph
-        accur_data = [all_data, inaccurate_data]
-        imgdata_accur = utils_io.donut_plot(accur_data, 'Accuracy')
-
-        # Read the image of the graph and set the size it will be saved in
-        img_accurate = Image(imgdata_accur, width=self.plot_width, height=self.plot_height)
+        # Generate the table with the stat data images
+        # Set for storing all the images
+        temp_list = []
+        for key,value in self.anomalies.items():
+            if value > 0 and key != 'Total':
+                graph_data = [all_data, value]
+                img_data = utils_io.donut_plot(graph_data, key)
+                img_key = Image(img_data, width=self.plot_width, height=self.plot_height)
+                temp_list.append(img_key)
+        # Convert the temp list to a tuple
+        img_set = tuple(temp_list)
 
         # Overall data quality score
-        overall_score = (1 - (incomplete_data + duplicated_data + invalid_data + inaccurate_data) / all_data) * 100
+        overall_score = (1 - (self.anomalies['Total']) / all_data) * 100
 
         psText = ParagraphStyle(name='a', fontSize=12, alignment=TA_LEFT, borderWidth=3, textColor=black)
         text2 = f"Data Quality Score: {overall_score:.1f}"
         # Flowable element for the title
         paragraph1 = Paragraph(text2, psText)
 
+        # If 1.7 inch and 150 can contain 4 images, how many will contain 6
+
+
         # New table that contains the last 4 images
-        data = [(img_completeness, img_unique, img_valid, img_accurate)]
+        # TODO: Hacer una funcion para hallar el tamaño de imagen y columna, segun la cantidad de datos
+        data = [img_set]
         table = Table(data, 150)
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, -1), transparent),
