@@ -45,6 +45,12 @@ def df_to_s3(df, bucket, csv_name):
     s3_resource = boto3.resource('s3')
     s3_resource.Object(bucket, csv_name).put(Body=csv_buffer.getvalue())
 
+def memory_file_to_s3(file, bucket, file_name):
+    # Upload csv file to s3 bucket
+    s3_resource = boto3.resource('s3')
+    s3_resource.Object(bucket, file_name).put(Body=file.getvalue())
+
+
 def get_json_from_drive(link):
     # Get the url id
     url_id = link.split('/')[-1]

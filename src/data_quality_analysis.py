@@ -109,7 +109,7 @@ def overview(df):
     # Check if there are no values in a type
     for i in [obj, num, date]:
         if not i:
-            i.append(['No values', ""])
+            i.append(['Sin valores', ""])
         else:
             pass
 
@@ -259,7 +259,7 @@ def timeliness(df):
 
 def anomalies_data(df):
     total_anomalies = completeness(df) + uniqueness(df) + validity(df) + accuracy(df) + consistency(df) + timeliness(df)
-    data = {'Completeness': completeness(df), 'Uniqueness': uniqueness(df), 'Validity': validity(df), 'Accuracy': accuracy(df), 'Consistency': consistency(df), 'Timeliness': timeliness(df), 'Total': total_anomalies}
+    data = {'Completitud': completeness(df), 'Unicidad': uniqueness(df), 'Validez': validity(df), 'Precisión': accuracy(df), 'Coherencia': consistency(df), 'Temporalidad': timeliness(df), 'Total': total_anomalies}
 
     return data
 
@@ -298,3 +298,44 @@ def analysis_stats(df):
 
     return stats
 
+def examples_data(df):
+    ds_prop = dataset_properties(df)
+    # Data type of album release date must be datetime, and it's an object
+    album_release_date_type = df['album_release_date']
+    album_release_date_type_is_datetime = album_release_date_type.dtypes == 'datetime64[ns]'
+
+    # Taylor Swift's first album was released in 2006, so the year should be greater than or equal 2006 and less than or equal to today's year
+    first_album = datetime(2006,1,1).strftime('%Y-%m-%d')
+    actual_year = datetime.now().strftime('%Y-%m-%d')
+    year_anomalies = (~df['album_release_date'].between(first_album, actual_year, inclusive='both'))
+    year_anomalies = df.loc[year_anomalies, 'album_release_date'].unique().tolist()
+
+    # Data type of instrumentalness audio feature must be numeric, and it's an object
+    instrumentalness_type = df['audio_features.instrumentalness']
+    instrumentalness_type_is_numeric = (instrumentalness_type.dtypes.name).isnumeric()
+
+    # Data in instrumentalness audio feature after being converted to numeric has inconsistent values
+    instrumentalness_type_conver_anomalies = (~instrumentalness_type.apply(func=utils_io.can_be_converted))
+    instrumentalness_type_conver_anomalies = df.loc[instrumentalness_type_conver_anomalies, 'audio_features.instrumentalness'].unique().tolist()
+
+    description = f"""
+    Ejemplo 1: <br/>
+    <br/>
+    Anomalías en la columna 'album_release_date': <br/>
+    - La columna 'album_release_date' contiene fechas de lanzamiento de álbumes, donde el formato de fecha es YYYY-MM-DD. Pero idealmente esta columna debería ser de tipo datetime, y no de tipo object. <br/>
+    album_release_date_type_is_datetime = {album_release_date_type_is_datetime} <br/>
+    <br/>
+    - Otra anomalía en esta columna es que hay fechas de lanzamiento de álbumes que son mayores al año actual y al año en que Taylor Swift lanzó su primer álbum. <br/>
+    year_anomalies = {year_anomalies} <br/>
+    <br/>
+    Ejemplo 2: <br/>
+    <br/>
+    Anomalías en la columna 'audio_features.instrumentalness': <br/>
+    - La columna 'audio_features.instrumentalness' contiene valores que indican si una canción no contiene voces. Esta columna debería ser de tipo numérico, y no de tipo object. <br/>
+    instrumentalness_type_is_numeric = {instrumentalness_type_is_numeric} <br/>
+    <br/>
+    - Otra anomalía en esta columna es que hay valores que no pueden ser convertidos a numéricos. <br/>
+    instrumentalness_type_conver_anomalies = {instrumentalness_type_conver_anomalies} <br/>
+    """
+
+    return description

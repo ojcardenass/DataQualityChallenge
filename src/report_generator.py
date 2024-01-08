@@ -32,7 +32,7 @@ base = Path(__file__).parent.parent
 error_buffer = StringIO()
 
 # Set the locale to English
-locale.setlocale(locale.LC_ALL, 'en_EN.UTF-8')
+locale.setlocale(locale.LC_ALL, 'es_ES.UTF-8')
 
 # Class for the header and footer of the canvas
 class FooterCanvas(canvas.Canvas):
@@ -57,7 +57,7 @@ class FooterCanvas(canvas.Canvas):
         canvas.Canvas.save(self)
 
     def draw_canvas(self, page_count):
-        page = "Page %s of %s" % (self._pageNumber, page_count)
+        page = "Página %s de %s" % (self._pageNumber, page_count)
         x = 128
 
         self.saveState()
@@ -67,13 +67,13 @@ class FooterCanvas(canvas.Canvas):
         self.line(66, 55, LETTER[0] - 66, 55)
 
         self.setFontSize(9)
-        text = 'Dataset Quality Report'
+        text = 'Informe sobre la calidad de los datos'
         self.setFillColor(black)
         self.drawString(60, 745, text)
 
         self.setFontSize(9)
-        date = datetime.now().strftime('%A, %d %B %Y').replace(' 0', ' ')
-        info = f" Generated on: {date}"
+        date = datetime.now().strftime('%A, %d de %B %Y').replace(' 0', ' ')
+        info = f" Generado el: {date}"
         self.setFillColor(black)
         self.drawString(60, 58, info)
 
@@ -122,6 +122,7 @@ class DataProfilingPDF():
             "Scores": self.scores,
             "Unique Value Analysis": self.graph_overview,
             "Nullity Matrix": self.nullity,
+            "Examples": self.examples,
             "Create Report": build_report,
         }
 
@@ -151,9 +152,9 @@ class DataProfilingPDF():
         spacer = Spacer(30, 450)
         self.elements.append(spacer)
 
-        psDetalle = ParagraphStyle('Resumen', fontSize=12, leading=14, justifyBreaks=1, alignment=TA_CENTER, justifyLastLine=1)
+        psDetalle = ParagraphStyle('Resumen', fontSize=16, leading=14, justifyBreaks=1, alignment=TA_CENTER, justifyLastLine=1)
         text = f"""
-        Grupo R5<br/>
+        Grupo R5 - Direción de Analítica<br/>
         """
         paragraphReportSummary = Paragraph(text, psDetalle)
         self.elements.append(paragraphReportSummary)
@@ -265,23 +266,23 @@ class DataProfilingPDF():
 
         # Generate the table with the stat data
         stat_data = [
-            ["Dataset statistics", ""],
+            ["Estadísticas de los datos", ""],
             ["", ""],
-            ["Number of variables", data_o['cols']],
-            ["Number of observations", data_o['rows']],
-            ["Total data", data_o['all']],
-            ["Missing cells", data_o['total_missing_values']],
-            ["Missing cells (%)", f"{data_o['total_missing_values_percentage']:.2f}"],
-            ["Duplicate rows", data_o['duplicate_rows']],
-            ["Duplicate rows (%)", f"{data_o['duplicate_rows_percentage']:.2f}"],
+            ["Número de variables", data_o['cols']],
+            ["Cantidad de observaciones", data_o['rows']],
+            ["Total de datos", data_o['all']],
+            ["Celdas vacías", data_o['total_missing_values']],
+            ["Celdas vacías (%)", f"{data_o['total_missing_values_percentage']:.2f}"],
+            ["Filas duplicadas", data_o['duplicate_rows']],
+            ["Filas duplicadas (%)", f"{data_o['duplicate_rows_percentage']:.2f}"],
         ]
 
         var_type = [
-            ["Variable types", ""],
+            ["Tipos de variables", ""],
             ["", ""],
-            ["Numeric", data_o['numerics']],
-            ["Text", data_o['strings']],
-            ["Date Time", data_o['date_time']],
+            ["Numérico", data_o['numerics']],
+            ["Texto", data_o['strings']],
+            ["Fecha", data_o['date_time']],
         ]
 
         col_widths = 200
@@ -292,23 +293,21 @@ class DataProfilingPDF():
         
         # Standard table style format
         table_style = TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 1), transparent),                 # Color de fondo blanco para las fila 1
-            # ('BACKGROUND', (0, 1), (-1, 1), HexColor(0xCCCCCC)),    # Color de fondo gris para la fila 2
-            ('TEXTCOLOR', (0, 0), (-1, -1), black),                 # Color de texto para todas las celdas
-            ('FONTSIZE', (0, 0), (-1, 1), 14),                      # Tamaño de fuente primera fila
-            ('FONTSIZE', (0, 1), (-1, -1), 8.2),                      # Tamaño de fuente demas fila
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),                    # Alinear todo a la izquierda
-            ('ALIGN', (1, 0), (1, 0), 'RIGHT'),                     # Alinear a la derecha la segunda columna de la primera fila
-            ('ALIGN', (2, 1), (-1, -1), 'RIGHT'),                   # Alinear a la derecha la tercera columna
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),                 # Alinear verticalmente los datos
-            ('RIGHTPADDING', (1, 0), (1, 0), -240),                 # Padding negativo para la segunda columna de la primera fila
-            # ('GRID', (0, 0), (-1, -1), 0.5, black)                  # Bordes de la tabla'
+            ('BACKGROUND', (0, 0), (-1, 1), transparent),                  
+            ('TEXTCOLOR', (0, 0), (-1, -1), black),                 
+            ('FONTSIZE', (0, 0), (-1, 1), 14),                 
+            ('FONTSIZE', (0, 1), (-1, -1), 8.2),                     
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),                    
+            ('ALIGN', (1, 0), (1, 0), 'RIGHT'),                     
+            ('ALIGN', (2, 1), (-1, -1), 'RIGHT'),                    
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),                
+            ('RIGHTPADDING', (1, 0), (1, 0), -240),                           
         ])
 
         stat_table = Table(stat_data, colWidths=col_widths, rowHeights=std_row_height, hAlign="LEFT")
         stat_table.setStyle(table_style)
 
-        var_table = Table(var_type, colWidths=col_widths, rowHeights=var_row_height, hAlign="LEFT")
+        var_table = Table(var_type, colWidths=col_widths, rowHeights=var_row_height, hAlign="RIGHT")
         var_table.setStyle(table_style)
 
         # New table that contains the last 2 tables
@@ -331,7 +330,7 @@ class DataProfilingPDF():
         imgdata = utils_io.pie_plot(data=data, title="Resumen de análisis", labels=labels)
 
         # Read the image of the graph and set the size it will be saved in
-        img_data = Image(imgdata, width=2.5 * inch, height=2.5 * inch)
+        img_data = Image(imgdata, width=3 * inch, height=3 * inch)
 
         data1 = [value for key, value in self.anomalies.items() if value > 0 and key != 'Total']
         labels1 = [key for key, value in self.anomalies.items() if value > 0 and key != 'Total']
@@ -339,11 +338,11 @@ class DataProfilingPDF():
         imgdata1 = utils_io.pie_plot(data=data1, title="Tipos de anomalías", labels=labels1)
 
         # Read the image of the graph and set the size it will be saved in
-        img_data1 = Image(imgdata1, width=2.5 * inch, height=2.5 * inch)
+        img_data1 = Image(imgdata1, width=3 * inch, height=3 * inch)
 
          # New table that contains the last 2 images
         data = [(img_data, img_data1)]
-        table1 = Table(data, 220)
+        table1 = Table(data, [220, 250])
         table1.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, -1), transparent),
             ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
@@ -358,31 +357,91 @@ class DataProfilingPDF():
         spacer = Spacer(10, 10)
         self.elements.append(spacer)
 
+    def scores(self):
+
+        # Styles for the section title
+        psHeaderText = ParagraphStyle('Hed0', fontSize=15, alignment=TA_LEFT, borderWidth=3, textColor=black)
+        text = 'Puntuación global'
+        # Flowable element for the title
+        paragraphReportHeader1 = Paragraph(text, psHeaderText)
+
+        spacer = Spacer(10, 10)
+
+        data_o = overview(self.dataset)
+        all_data = data_o['all']
+        rows = data_o['rows']
+
+        # Calculation of image size and column width, with the number of categories
+        num_categ = sum(1 for key, value in self.anomalies.items() if value > 0 and key != 'Total')
+        colwidth = 600 / num_categ
+        image_size = (colwidth) / 90
+        image_size = image_size * inch
+
+        # Generate the table with the stat data images
+        # Set for storing all the images
+        temp_list = []
+        for key,value in self.anomalies.items():
+            if value > 0 and key != 'Total':
+                graph_data = [all_data, value]
+                img_data = utils_io.donut_plot(graph_data, key)
+                img_key = Image(img_data, width=image_size, height=image_size)
+                temp_list.append(img_key)
+        # Convert the temp list to a tuple
+        img_set = tuple(temp_list)
+
+        # Overall data quality score
+        overall_score = (1 - (self.anomalies['Total']) / all_data) * 100
+
+        psText = ParagraphStyle(name='a', fontSize=12, alignment=TA_LEFT, borderWidth=3, textColor=black)
+        text2 = f"Calidad de los datos: {overall_score:.1f}"
+        # Flowable element for the title
+        paragraph1 = Paragraph(text2, psText)
+
+        description = """
+        Puntuación del total de datos, comparada con cada una de las categorías de anomalías.
+        """
+        paragraphReport = Paragraph(description, self.styleSheet['Definition'])
+
+        # New table that contains the last images
+        data = [img_set]
+        table = Table(data, colwidth)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), transparent),
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+
+
+        block = KeepTogether([paragraphReportHeader1, spacer, paragraph1, spacer, paragraphReport, spacer, table])
+        self.elements.append(block)
+
+        spacer = Spacer(10, 10)
+        self.elements.append(spacer)
 
     def graph_overview(self):
         data_o = overview(self.dataset)
         # Styles for the section title
         psHeaderText2 = ParagraphStyle('Hed1', fontSize=15, alignment=TA_LEFT, borderWidth=3, textColor=black)
-        text2 = 'Unique Value Analysis'
+        text2 = 'Análisis de valores únicos'
         # Flowable element for the title
         paragraphReportHeader2 = Paragraph(text2, psHeaderText2)
 
         spacer2 = Spacer(10, 6)
 
         object_data = [
-            ["Object Columns", ""],
+            ["Columnas de texto", ""],
             ["", ""],
         ]
         object_data.extend(data_o['str_types'])
 
         num_data = [
-            ["Numeric Columns", ""],
+            ["Columnas númericas", ""],
             ["", ""],
         ]
         num_data.extend(data_o['num_types'])
 
         date_data = [
-            ["Date Time Columns", ""],
+            ["Columnas de fecha", ""],
             ["", ""],
         ]
         date_data.extend(data_o['date_types'])
@@ -428,65 +487,10 @@ class DataProfilingPDF():
         block1 = KeepTogether([paragraphReportHeader2, spacer2, table1])
         self.elements.append(block1)
 
-    def scores(self):
-
-        # Styles for the section title
-        psHeaderText = ParagraphStyle('Hed0', fontSize=15, alignment=TA_LEFT, borderWidth=3, textColor=black)
-        text = 'Overall Scores'
-        # Flowable element for the title
-        paragraphReportHeader1 = Paragraph(text, psHeaderText)
-
-        spacer = Spacer(10, 10)
-
-        data_o = overview(self.dataset)
-        all_data = data_o['all']
-        rows = data_o['rows']
-
-        # Generate the table with the stat data images
-        # Set for storing all the images
-        temp_list = []
-        for key,value in self.anomalies.items():
-            if value > 0 and key != 'Total':
-                graph_data = [all_data, value]
-                img_data = utils_io.donut_plot(graph_data, key)
-                img_key = Image(img_data, width=self.plot_width, height=self.plot_height)
-                temp_list.append(img_key)
-        # Convert the temp list to a tuple
-        img_set = tuple(temp_list)
-
-        # Overall data quality score
-        overall_score = (1 - (self.anomalies['Total']) / all_data) * 100
-
-        psText = ParagraphStyle(name='a', fontSize=12, alignment=TA_LEFT, borderWidth=3, textColor=black)
-        text2 = f"Data Quality Score: {overall_score:.1f}"
-        # Flowable element for the title
-        paragraph1 = Paragraph(text2, psText)
-
-        # If 1.7 inch and 150 can contain 4 images, how many will contain 6
-
-
-        # New table that contains the last 4 images
-        # TODO: Hacer una funcion para hallar el tamaño de imagen y columna, segun la cantidad de datos
-        data = [img_set]
-        table = Table(data, 150)
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), transparent),
-            ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ]))
-
-
-        block = KeepTogether([paragraphReportHeader1, spacer, paragraph1, table])
-        self.elements.append(block)
-
-        spacer = Spacer(10, 10)
-        self.elements.append(spacer)
-
-
     def nullity(self):
         # Styles for the section title
         psHeaderText1 = ParagraphStyle('Hed1', fontSize=15, alignment=TA_LEFT, borderWidth=3, textColor=black)
-        text1 = 'Nullity Matrix'
+        text1 = 'Matriz de nulidad'
         # Flowable element for the title
         paragraphReportHeader1 = Paragraph(text1, psHeaderText1)
 
@@ -512,13 +516,39 @@ class DataProfilingPDF():
         spacer = Spacer(10, 20)
         self.elements.append(spacer)
 
+        self.elements.append(PageBreak())
+
+    def examples(self):
+        # Styles for the section title
+        psHeaderText1 = ParagraphStyle('Hed1', fontSize=15, alignment=TA_LEFT, borderWidth=3, textColor=black)
+        text1 = 'Ejemplos de anomalías'
+        # Flowable element for the title
+        paragraphReportHeader1 = Paragraph(text1, psHeaderText1)
+        self.elements.append(paragraphReportHeader1)
+
+        spacer1 = Spacer(10, 6)
+        self.elements.append(spacer1)
+
+        examples = examples_data(self.dataset)
+
+        paragraphReport = Paragraph(examples, self.styleSheet['Definition'])
+        self.elements.append(paragraphReport)
+
+        self.elements.append(PageBreak())
+
+
 if __name__ == '__main__':
     try:
         start = time.time()
         report = DataProfilingPDF()
         end = time.time()
         exc_time = end - start
+
         print(f"Report generated in {exc_time:.2f} seconds")
+
+        # Upload csv dataset to S3
+        bucket = 'dataqualitychallenge'
+        utils_io.upload_file(report.doc.filename, bucket, 'data_quality_report.pdf')
 
     except ValueError as ve:
         print(f"Error: {ve}")
