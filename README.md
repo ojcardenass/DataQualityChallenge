@@ -6,14 +6,18 @@ Este repositorio contiene la solución a un desafío técnico que implica el pro
 ```bash
 ├── src
 │   ├── spotify_data_processing.py
+│   ├── extra_profilling_report.py
+│   ├── report_generator.py
+│   ├── utils_io.py
 │   └── data_quality_analysis.py
 ├── input
-│   └── taylor_swift_spotify.json
+│   └── input.txt
 ├── output
 │   ├── doc
-│   │   └── data_quality_report.pdf
+│   │   ├── data_quality_report.pdf
+│   │   └── profilling_report.html
 │   └── dataset.csv
-├── res
+├── GenerateReport.bat
 ├── README.md
 ├── requirements.txt
 └── .gitignore
@@ -23,7 +27,7 @@ Este repositorio contiene la solución a un desafío técnico que implica el pro
 - spotify_data_processing.py: Script en Python que procesa el archivo JSON descargado de la API de Spotify y lo convierte al formato solicitado (dataset.csv).
 - data_quality_analysis.py: Script en Python que realiza el análisis de calidad de datos sobre el conjunto de datos resultante.
 - report_generator.py: Script en Python que genera un informe de calidad de datos basado en los tests y comentarios definidos en data_quality_analysis.py.
-- utils_io.py: Este módulo provee funciones utilitarias para las operaciones de input/output
+- utils_io.py: Este módulo provee funciones utilitarias para las operaciones de input/output. Incluye funciones para obtener los datos directamente desde el enlace de Google Drive y para guardar los archivos en el servicio de almacenamiento en la nube de AWS S3.
 - extra_profiling_report.py: Script en Python que genera un informe adicional de perfilado de datos, proporcionando estadísticas y visualizaciones sobre el conjunto de datos procesado.
 
 **input/: Contiene los archivos que seran analizados.**
