@@ -122,7 +122,7 @@ class DataProfilingPDF():
             "Scores": self.scores,
             "Unique Value Analysis": self.graph_overview,
             "Nullity Matrix": self.nullity,
-            "Examples": self.examples,
+            # "Examples": self.examples,
             "Create Report": build_report,
         }
 
@@ -181,7 +181,7 @@ class DataProfilingPDF():
         self.elements.append(spacer)
 
         psHeaderText = ParagraphStyle('Hed0', fontSize=15, leftIndent=50, leading=20, alignment=TA_LEFT, borderWidth=3, textColor=black)
-        text = '2. Consideraciones de anomalías'
+        text = '2. Consideraciones y ejemplos de anomalías'
         paragraphReportHeader = Paragraph(text, psHeaderText)
         self.elements.append(paragraphReportHeader)
 
@@ -194,10 +194,10 @@ class DataProfilingPDF():
         spacer = Spacer(10, 2)
         self.elements.append(spacer)
 
-        psHeaderText = ParagraphStyle('Hed0', fontSize=15, leftIndent=50, leading=20, alignment=TA_LEFT, borderWidth=3, textColor=black)
-        text = '4. Ejemplos de anomalías'
-        paragraphReportHeader = Paragraph(text, psHeaderText)
-        self.elements.append(paragraphReportHeader)
+        # psHeaderText = ParagraphStyle('Hed0', fontSize=15, leftIndent=50, leading=20, alignment=TA_LEFT, borderWidth=3, textColor=black)
+        # text = '4. Ejemplos de anomalías'
+        # paragraphReportHeader = Paragraph(text, psHeaderText)
+        # self.elements.append(paragraphReportHeader)
 
         self.elements.append(PageBreak())
 
@@ -243,14 +243,27 @@ class DataProfilingPDF():
         spacer = Spacer(30, 50)
         self.elements.append(spacer)
 
-        anomalies_list = regards_data()
+        anomalies = regards_data(self.dataset)
 
-        style = self.styleSheet["Definition"]
+        style_normal = self.styleSheet["Normal"]
+        style_definition = self.styleSheet["Definition"]
+        style_definition.defaults['fontSize'] = 8
 
-        # Create a list of Paragraphs with enumeration
-        paragraphs = [Paragraph(f"2.{i + 1:02d} {anomaly}", style) for i, anomaly in enumerate(anomalies_list)]
+        paragraphs = []
+        for i, anomaly in enumerate(anomalies.keys()):
+            key_paragraph = Paragraph(f"2.{i + 1:02d} {anomaly}", style_normal)
+            value_paragraph = Paragraph(anomalies[anomaly], style_definition)
+            paragraphs.extend([key_paragraph, value_paragraph])
+
         self.elements.extend(paragraphs)
 
+        noteParagraph = Paragraph("Nota general:", style_normal)
+        noteText = """
+         No se presentan los registros completos de los datos anómalos en este informe, pero es factible generar un archivo CSV que contenga la información completa de cada anomalía. <br/>"""
+        noteTextParagraph = Paragraph(noteText, style_definition)
+        self.elements.append(noteParagraph)
+        self.elements.append(noteTextParagraph)
+        
         self.elements.append(PageBreak())
 
 
@@ -518,23 +531,23 @@ class DataProfilingPDF():
 
         self.elements.append(PageBreak())
 
-    def examples(self):
-        # Styles for the section title
-        psHeaderText1 = ParagraphStyle('Hed1', fontSize=15, alignment=TA_LEFT, borderWidth=3, textColor=black)
-        text1 = 'Ejemplos de anomalías'
-        # Flowable element for the title
-        paragraphReportHeader1 = Paragraph(text1, psHeaderText1)
-        self.elements.append(paragraphReportHeader1)
+    # def examples(self):
+    #     # Styles for the section title
+    #     psHeaderText1 = ParagraphStyle('Hed1', fontSize=15, alignment=TA_LEFT, borderWidth=3, textColor=black)
+    #     text1 = 'Ejemplos de anomalías'
+    #     # Flowable element for the title
+    #     paragraphReportHeader1 = Paragraph(text1, psHeaderText1)
+    #     self.elements.append(paragraphReportHeader1)
 
-        spacer1 = Spacer(10, 6)
-        self.elements.append(spacer1)
+    #     spacer1 = Spacer(10, 6)
+    #     self.elements.append(spacer1)
 
-        examples = examples_data(self.dataset)
+    #     examples = examples_data(self.dataset)
 
-        paragraphReport = Paragraph(examples, self.styleSheet['Definition'])
-        self.elements.append(paragraphReport)
+    #     paragraphReport = Paragraph(examples, self.styleSheet['Definition'])
+    #     self.elements.append(paragraphReport)
 
-        self.elements.append(PageBreak())
+    #     self.elements.append(PageBreak())
 
 
 if __name__ == '__main__':
